@@ -1,9 +1,9 @@
-package com.wizeline;
+package com.wizeline.data;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
 import com.smontiel.simple_jdbc.SimpleJDBC;
 
-public class RemoteDatabase {
+public class RemoteDatabase implements Database {
   private static RemoteDatabase instance;
   public SimpleJDBC db;
 
@@ -27,6 +27,7 @@ public class RemoteDatabase {
     return instance;
   }
 
+  @Override
   public User findUserByUsername(String username) {
     return db.oneOrNone("SELECT * FROM users WHERE username = '" + username + "'", rs -> {
       return new User(rs.getString("username"), rs.getString("password"), rs.getString("salt"), rs.getString("role"));

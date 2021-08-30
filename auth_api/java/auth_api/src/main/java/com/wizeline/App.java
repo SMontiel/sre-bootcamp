@@ -4,58 +4,41 @@ import com.auth0.jwt.exceptions.AlgorithmMismatchException;
 import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.wizeline.data.Database;
+import com.wizeline.data.RemoteDatabase;
+import com.wizeline.data.User;
+import spark.Route;
 
 import static com.wizeline.JsonUtil.json;
 import static spark.Spark.*;
 
 public class App {
-  private static final RemoteDatabase db = RemoteDatabase.getInstance();
 
-    public static void main(String[] args) {
-      System.out.println( "Listening on: http://localhost:8000/" );
+  public static void main(String[] args) {
+    new App(RemoteDatabase.getInstance());
+  }
 
-      port(8000);
-      get("/", App::routeRoot);
-      get("/_health", App::routeRoot);
-      post("/login", App::urlLogin, json());
-      get("/protected", App::protect, json());
+  private final Database db;
 
-      exception(IllegalArgumentException.class, (e, req, res) -> {
-        res.status(403);
-        res.type("application/json");
-        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
-      });
+  public App(Database db) {
+    this.db = db;
+    System.out.println( "Listening on: http://localhost:8000/" );
 
-      exception(JWTVerificationException.class, (e, req, res) -> {
-        res.status(403);
-        res.type("application/json");
-        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
-      });
+    port(8000);
+    get("/", routeRoot());
+    get("/_health", routeRoot());
+    post("/login", urlLogin(), json());
+    get("/protected", protect(), json());
 
-      exception(AlgorithmMismatchException.class, (e, req, res) -> {
-        res.status(403);
-        res.type("application/json");
-        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
-      });
+    initExceptionHandlers();
+  }
 
-      exception(InvalidClaimException.class, (e, req, res) -> {
-        res.status(403);
-        res.type("application/json");
-        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
-      });
+  public Route routeRoot() {
+    return (request, response) -> "OK";
+  }
 
-      exception(TokenExpiredException.class, (e, req, res) -> {
-        res.status(403);
-        res.type("application/json");
-        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
-      });
-    }
-
-    public static Object routeRoot(spark.Request req, spark.Response res) throws Exception {
-      return "OK";
-    }
-
-    public static Object urlLogin(spark.Request req, spark.Response res) throws Exception {
+  public Route urlLogin() {
+    return (req, res) -> {
       String username = req.queryParams("username");
       String password = req.queryParams("password");
 
@@ -79,9 +62,11 @@ public class App {
       Response r = new Response(Methods.generateToken(user.role));
       res.type("application/json");
       return r;
-    }
+    };
+  }
 
-    public static Object protect(spark.Request req, spark.Response res) throws Exception {
+  public Route protect() {
+    return (req, res) -> {
       String authorization = req.headers("Authorization");
       if (authorization == null) {
         throw new IllegalArgumentException("Invalid Authorization header");
@@ -90,5 +75,38 @@ public class App {
       Response r = new Response(Methods.accessData(authorization));
       res.type("application/json");
       return r;
-    }
+    };
+  }
+
+  private void initExceptionHandlers() {
+    exception(IllegalArgumentException.class, (e, req, res) -> {
+      res.status(403);
+      res.type("application/json");
+      res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+    });
+
+    exception(JWTVerificationException.class, (e, req, res) -> {
+      res.status(403);
+      res.type("application/json");
+      res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+    });
+
+    exception(AlgorithmMismatchException.class, (e, req, res) -> {
+      res.status(403);
+      res.type("application/json");
+      res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+    });
+
+    exception(InvalidClaimException.class, (e, req, res) -> {
+      res.status(403);
+      res.type("application/json");
+      res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+    });
+
+    exception(TokenExpiredException.class, (e, req, res) -> {
+      res.status(403);
+      res.type("application/json");
+      res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+    });
+  }
 }

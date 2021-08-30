@@ -1,4 +1,4 @@
-package com.wizeline;
+package com.wizeline.data;
 
 public class User {
 	public final String username;

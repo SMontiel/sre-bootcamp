@@ -1,5 +1,5 @@
 package com.wizeline;
-import static com.wizeline.Methods.*;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -7,7 +7,8 @@ import junit.framework.TestSuite;
 /**
  * Unit test for simple App.
  */
-public class MethodsTest extends TestCase{
+public class MethodsTest extends TestCase {
+    public static final String jwtToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4ifQ.BmcZ8aB5j8wLSK8CqdDwkGxZfFwM1X1gfAIN7cXOx9w";
 
     public MethodsTest( String testName ){
         super( testName );
@@ -17,11 +18,11 @@ public class MethodsTest extends TestCase{
         return new TestSuite( MethodsTest.class );
     }
 
-    public void testGenerateToken(){
-      assertEquals("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4ifQ.StuYX978pQGnCeeaj2E1yBYwQvZIodyDTCJWXdsxBGI", Methods.generateToken("admin", "secret"));
+    public void testGenerateToken() {
+      assertEquals(jwtToken, Methods.generateToken("admin"));
     }
 
-    public void testAccessData(){
-      assertEquals("You are under protected data", Methods.accessData("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4ifQ.StuYX978pQGnCeeaj2E1yBYwQvZIodyDTCJWXdsxBGI"));
+    public void testAccessData() {
+      assertEquals("You are under protected data", Methods.accessData(jwtToken));
     }
 }

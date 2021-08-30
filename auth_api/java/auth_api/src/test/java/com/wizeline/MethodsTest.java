@@ -23,6 +23,6 @@ public class MethodsTest extends TestCase {
     }
 
     public void testAccessData() {
-      assertEquals("You are under protected data", Methods.accessData(jwtToken));
+      assertEquals("You are under protected data", Methods.accessData("Bearer " + jwtToken));
     }
 }

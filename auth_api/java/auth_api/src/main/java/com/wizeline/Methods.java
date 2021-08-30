@@ -1,7 +1,9 @@
 package com.wizeline;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +29,17 @@ public class Methods {
             .sign(algorithm);
   }
 
-  public static String accessData(String authorization) {
-    return "test";
+  public static String accessData(String authorizationHeader) {
+    if (authorizationHeader != null) {
+      authorizationHeader = authorizationHeader.substring(7); // Removes 'Bearer ' text
+    }
+    JWTVerifier verifier = JWT.require(algorithm)
+        .build();
+    DecodedJWT jwt = verifier.verify(authorizationHeader);
+    if (jwt != null && jwt.getClaim("role") != null) {
+      return "You are under protected data";
+    }
+    throw new IllegalArgumentException("Invalid Authorization header");
   }
 }
 

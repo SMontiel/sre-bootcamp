@@ -1,8 +1,11 @@
 package com.wizeline;
 
-import static com.wizeline.JsonUtil.*;
-import static com.wizeline.Methods.*;
-import static com.wizeline.Response.*;
+import com.auth0.jwt.exceptions.AlgorithmMismatchException;
+import com.auth0.jwt.exceptions.InvalidClaimException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+
+import static com.wizeline.JsonUtil.json;
 import static spark.Spark.*;
 
 public class App {
@@ -16,6 +19,36 @@ public class App {
       get("/_health", App::routeRoot);
       post("/login", App::urlLogin, json());
       get("/protected", App::protect, json());
+
+      exception(IllegalArgumentException.class, (e, req, res) -> {
+        res.status(403);
+        res.type("application/json");
+        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+      });
+
+      exception(JWTVerificationException.class, (e, req, res) -> {
+        res.status(403);
+        res.type("application/json");
+        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+      });
+
+      exception(AlgorithmMismatchException.class, (e, req, res) -> {
+        res.status(403);
+        res.type("application/json");
+        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+      });
+
+      exception(InvalidClaimException.class, (e, req, res) -> {
+        res.status(403);
+        res.type("application/json");
+        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+      });
+
+      exception(TokenExpiredException.class, (e, req, res) -> {
+        res.status(403);
+        res.type("application/json");
+        res.body(JsonUtil.toJson(new ErrorResponse(403, e.getMessage())));
+      });
     }
 
     public static Object routeRoot(spark.Request req, spark.Response res) throws Exception {
@@ -50,6 +83,10 @@ public class App {
 
     public static Object protect(spark.Request req, spark.Response res) throws Exception {
       String authorization = req.headers("Authorization");
+      if (authorization == null) {
+        throw new IllegalArgumentException("Invalid Authorization header");
+      }
+
       Response r = new Response(Methods.accessData(authorization));
       res.type("application/json");
       return r;
